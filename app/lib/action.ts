@@ -6,6 +6,8 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import Form from '../ui/invoices/create-form';
 import { stat } from 'fs/promises';
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' })
 
 const FormSchema = z.object(
@@ -89,10 +91,34 @@ export async function updateInvoice(id: string, formData: FormData) {
 }
 
 export async function deleteInvoice(id: string) {
-  throw new Error('Failed to delete')
   console.log(`Delete invoice with id=${id}`);
   await sql`
     DELETE FROM invoices WHERE id=${id}
   `;
   revalidatePath('/dashboard/invoices');
+}
+
+export async function authenticate(
+  prevState: string | undefined, 
+  formData: FormData,
+  redirectTo?: string
+) {
+  try {
+    console.log('before signIn')
+    await signIn('credentials', formData);
+    console.log('after signIn')
+    
+    // 登录成功后重定向到指定页面或默认页面
+    redirect(redirectTo || '/dashboard');
+  } catch (error) {
+    if (error instanceof AuthError) {
+      switch (error.type) {
+        case 'CredentialsSignin':
+          return 'Invalid Credentials';
+        default:
+          return 'Something Wrong! maybe wrong email or password'
+      }
+    }
+    throw error; // 重新抛出未处理的错误
+  }
 }
