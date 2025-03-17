@@ -99,17 +99,13 @@ export async function deleteInvoice(id: string) {
 }
 
 export async function authenticate(
-  prevState: string | undefined, 
+  prevState: string | undefined,
   formData: FormData,
-  redirectTo?: string
 ) {
   try {
     console.log('before signIn')
     await signIn('credentials', formData);
     console.log('after signIn')
-    
-    // 登录成功后重定向到指定页面或默认页面
-    redirect(redirectTo || '/dashboard');
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {

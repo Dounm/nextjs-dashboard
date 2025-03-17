@@ -14,12 +14,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 export default function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  // 在 useFormState 或 useActionState 调用中传递 callbackUrl
   const [errorMessage, formAction, isPending] = useActionState(
-    (prevState, formData) => authenticate(prevState, formData, callbackUrl),
+    authenticate,
     undefined,
   );
 
@@ -71,6 +69,7 @@ export default function LoginForm() {
             </div>
           </div>
         </div>
+        {/* This hidden input is used to pass `redirectTo` argument to signIn(), see signature of signIn() for more details */}
         <input type="hidden" name="redirectTo" value={callbackUrl} />
         <Button className="mt-4 w-full" aria-disabled={isPending}>
           Log in <ArrowRightIcon className="ml-auto h-5 w-5 text-gray-50" />
